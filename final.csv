@@ -1,0 +1,3 @@
+model,language,rows,wer,wer_relative_reduction_vs_baseline,cer,cer_relative_reduction_vs_baseline,corpus_wer,corpus_wer_relative_reduction_vs_baseline,corpus_cer,corpus_cer_relative_reduction_vs_baseline,exact_norm,chrf,chrf_pp,backend,hardware,mean_request_seconds,median_request_seconds,p95_request_seconds,mean_generation_seconds,overall_tokens_per_second,max_peak_memory_gib
+Qwen3-8B-bfloat16,mix,215,0.256415,-0.198940,0.137740,-0.367676,0.206271,-0.207966,0.102773,-0.449344,0.293023,83.490830,81.083644,transformers,Tesla V100-SXM2-32GB,3.8090791109169637,3.135815748013556,8.373417756799608,3.8050875970444014,10.656479299135873,15.998601913452148
+baseline_asr,mix,215,0.213868,,0.100711,,0.170759,,0.070910,,0.320930,86.206382,84.074604,,,,,,,,

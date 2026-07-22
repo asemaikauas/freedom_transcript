@@ -1,0 +1,3 @@
+model,language,rows,wer,wer_relative_reduction_vs_baseline,cer,cer_relative_reduction_vs_baseline,corpus_wer,corpus_wer_relative_reduction_vs_baseline,corpus_cer,corpus_cer_relative_reduction_vs_baseline,exact_norm,chrf,chrf_pp,backend,hardware,mean_request_seconds,median_request_seconds,p95_request_seconds,mean_generation_seconds,overall_tokens_per_second,max_peak_memory_gib
+Qwen3-8B-bfloat16,mix,187,0.265410,-0.184343,0.147026,-0.341184,0.211667,-0.158055,0.112076,-0.311060,0.320856,83.000910,80.571342,transformers,NVIDIA A100-PCIE-40GB,1.6672922040131641,1.1455332711338997,4.523091622069477,1.6631299707500693,18.726368699069198,15.537106990814209
+baseline_asr,mix,187,0.224099,,0.109624,,0.182778,,0.085485,,0.347594,85.214378,83.081183,,,,,,,,

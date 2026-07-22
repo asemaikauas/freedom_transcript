@@ -1,0 +1,3 @@
+model,language,asr_model,rows,wer,cer,corpus_wer,corpus_cer,exact_norm,chrf,chrf_pp
+Qwen3-8B-bfloat16,mix,provided_asr_baseline,187,0.265410,0.147026,0.211667,0.112076,0.320856,83.000910,80.571342
+baseline_asr,mix,provided_asr_baseline,187,0.224099,0.109624,0.182778,0.085485,0.347594,85.214378,83.081183

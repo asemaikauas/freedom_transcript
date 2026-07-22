@@ -1,0 +1,2 @@
+model,language,rows,wer,cer,corpus_wer,corpus_cer,exact_norm,chrf,chrf_pp
+baseline_asr,mix,187,0.224099,0.109624,0.182778,0.085485,0.347594,85.214378,83.081183
