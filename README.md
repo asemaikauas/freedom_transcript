@@ -84,12 +84,16 @@ The evaluator-compatible output remains:
 id,model,cleaned_text
 ```
 
-The runner rejects malformed JSON, non-local or overlapping replacements,
-ambiguous repeated substrings, excessive changes, modified numbers, unexpected
-Kazakh/Russian language shifts, and repetition loops. A rejected response falls
-back to the original ASR transcript. Per-row timing JSONL records the raw model
-response, proposed edits, applied edits, rejected edits, parse errors, and
-safety fallback reason.
+The runner treats the model-supplied edit type as untrusted. It verifies filler,
+punctuation, capitalization, and spacing edits mechanically; protects
+capitalized names; and rejects normal-word deletion, multiword grammar changes,
+word shortening, ordinary repetition deletion, and word changes larger than
+one character. It also rejects malformed JSON, non-local or overlapping
+replacements, ambiguous repeated substrings, excessive changes, modified
+numbers, unexpected Kazakh/Russian language shifts, and repetition loops. A
+rejected edit leaves that source span unchanged. Per-row timing JSONL records
+the raw model response, proposed edits, applied edits, rejected edits, parse
+errors, and safety fallback reason.
 
 The safety limits can be adjusted when running controlled experiments:
 
@@ -139,6 +143,28 @@ latency. The Slurm job also
 writes `reports/freedom_ai_labs/comparison_with_speed.csv`, which joins accuracy,
 relative improvement over the supplied ASR baseline, latency, throughput, and
 hardware into one table.
+
+### Normalized 215-row BF16 versus Q8_0 comparison
+
+`data/freedom_ai_labs_normalized_benchmark.csv` contains the lowercase,
+punctuation-normalized version of the same 215 source/reference pairs. It uses
+separate IDs and output directories so it cannot overwrite the original
+benchmark.
+
+Submit both hardware-specific runs and a dependent comparison job from the
+repository root:
+
+```bash
+bash scripts/submit_freedom_ai_labs_normalized.sh
+```
+
+The BF16 job requests an A100. The Q8_0 job requests a V100 and starts the
+existing V100 `llama-server` with its CUDA 12 runtime. When both model jobs
+succeed, the comparison job writes:
+
+```text
+reports/freedom_ai_labs_normalized/comparison_with_speed.csv
+```
 
 ## Models
 

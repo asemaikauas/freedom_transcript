@@ -167,7 +167,7 @@ class RunnerHelperTests(unittest.TestCase):
         self.assertEqual(ambiguous_result["rejected_edits"][0]["reason"], "source_not_unique")
         self.assertEqual(specific_result["output_text"], "ыыы мәтін ")
 
-    def test_rejects_sentence_rewrite_over_change_budget(self) -> None:
+    def test_rejects_sentence_rewrite_as_unsafe_multiword_edit(self) -> None:
         original = "Это исходное предложение остается на русском языке."
         response = (
             '{"edits":[{"from":"Это исходное предложение остается на русском языке.",'
@@ -178,13 +178,14 @@ class RunnerHelperTests(unittest.TestCase):
         result = apply_structured_edits(original, response)
 
         self.assertEqual(result["output_text"], original)
-        self.assertEqual(result["rejected_edits"][0]["reason"], "change_budget_exceeded")
+        self.assertEqual(result["rejected_edits"][0]["reason"], "unsafe_multiword_edit")
 
     def test_rejects_unexpected_language_change(self) -> None:
-        original = "Если это возможно?"
+        original = "а б в"
         response = (
-            '{"edits":[{"from":"Если это возможно?",'
-            '"to":"Егер бұл мүмкін болса?","type":"grammar"}]}'
+            '{"edits":[{"from":"а","to":"ә","type":"spelling"},'
+            '{"from":"б","to":"ө","type":"spelling"},'
+            '{"from":"в","to":"ү","type":"spelling"}]}'
         )
 
         result = apply_structured_edits(original, response, max_change_ratio=1.0)
@@ -193,8 +194,8 @@ class RunnerHelperTests(unittest.TestCase):
         self.assertEqual(result["safety_fallback"], "unexpected_kazakh_translation")
 
     def test_rejects_number_change(self) -> None:
-        original = "Мен 1995 жылы дүниеге келдім."
-        response = '{"edits":[{"from":"1995","to":"1994","type":"grammar"}]}'
+        original = "Маған бір билет керек."
+        response = '{"edits":[{"from":"бір","to":"бер","type":"spelling"}]}'
 
         result = apply_structured_edits(original, response)
 
@@ -202,16 +203,88 @@ class RunnerHelperTests(unittest.TestCase):
         self.assertEqual(result["safety_fallback"], "protected_number_changed")
 
     def test_rejects_repetition_loop(self) -> None:
-        original = "Бұл жауап өте жақсы болды, мен оны кейін қайта тексеріп шығамын."
+        original = "б в г д е"
         response = (
-            '{"edits":[{"from":"жақсы",'
-            '"to":"қайта қайта қайта қайта қайта қайта","type":"grammar"}]}'
+            '{"edits":[{"from":"б","to":"а","type":"spelling"},'
+            '{"from":"в","to":"а","type":"spelling"},'
+            '{"from":"г","to":"а","type":"spelling"},'
+            '{"from":"д","to":"а","type":"spelling"},'
+            '{"from":"е","to":"а","type":"spelling"}]}'
         )
 
         result = apply_structured_edits(original, response, max_change_ratio=1.0)
 
         self.assertEqual(result["output_text"], original)
         self.assertEqual(result["safety_fallback"], "repetition_loop")
+
+    def test_rejects_discourse_marker_as_filler(self) -> None:
+        original = "Мхм, осы номер арқылы алдыңыз ба?"
+        response = '{"edits":[{"from":"Мхм","to":"","type":"filler"}]}'
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], original)
+        self.assertEqual(result["rejected_edits"][0]["reason"], "filler_not_allowlisted")
+
+    def test_rejects_edit_type_spoofing(self) -> None:
+        original = "регистрация і орысша жазылып тұрады"
+        response = (
+            '{"edits":[{"from":"і орысша","to":"і","type":"punctuation"}]}'
+        )
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], original)
+        self.assertEqual(result["rejected_edits"][0]["reason"], "punctuation_changed_text")
+
+    def test_rejects_risky_grammar_change(self) -> None:
+        original = "Телефоннан регистрация жасай алмасам."
+        response = (
+            '{"edits":[{"from":"алмасам","to":"алмаймын","type":"grammar"}]}'
+        )
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], original)
+        self.assertEqual(
+            result["rejected_edits"][0]["reason"], "word_edit_distance_too_large"
+        )
+
+    def test_rejects_shortening_a_word(self) -> None:
+        original = "Естіп тұрмын ба?"
+        response = '{"edits":[{"from":"тұрмын","to":"тұрын","type":"grammar"}]}'
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], original)
+        self.assertEqual(result["rejected_edits"][0]["reason"], "unsafe_word_shortening")
+
+    def test_protects_capitalized_name_or_brand(self) -> None:
+        original = "Сізге Скат әуе компаниясы көмектеседі."
+        response = '{"edits":[{"from":"Скат","to":"Скать","type":"spelling"}]}'
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], original)
+        self.assertEqual(
+            result["rejected_edits"][0]["reason"], "protected_capitalized_token"
+        )
+
+    def test_filler_deletion_does_not_leave_double_space(self) -> None:
+        original = "Шымкенттен ыыы сұрайын."
+        response = '{"edits":[{"from":"ыыы","to":"","type":"filler"}]}'
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], "Шымкенттен сұрайын.")
+
+    def test_filler_deletion_does_not_leave_leading_comma(self) -> None:
+        original = "Ыыы, маған терезе жақтан орын беріңізші."
+        response = '{"edits":[{"from":"Ыыы","to":"","type":"filler"}]}'
+
+        result = apply_structured_edits(original, response)
+
+        self.assertEqual(result["output_text"], "маған терезе жақтан орын беріңізші.")
 
 
 if __name__ == "__main__":

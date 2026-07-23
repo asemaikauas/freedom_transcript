@@ -113,6 +113,31 @@ NUMBER_WORDS = frozenset(
         "мың",
     }
 )
+ALLOWED_EDIT_TYPES = frozenset(
+    {
+        "grammar",
+        "spelling",
+        "phonetic",
+        "filler",
+        "punctuation",
+        "capitalization",
+        "spacing",
+        "repetition",
+    }
+)
+SAFE_FILLER_FORMS = frozenset(
+    {
+        "ыыы",
+        "ы-ы-ы",
+        "эээ",
+        "э-э-э",
+        "ммм",
+        "м-м-м",
+        "і",
+        "іі",
+        "ііі",
+    }
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -282,6 +307,74 @@ def _has_repetition_loop(text: str, threshold: int = 5) -> bool:
     return False
 
 
+def _edit_distance(left: str, right: str) -> int:
+    previous = list(range(len(right) + 1))
+    for i, left_char in enumerate(left, start=1):
+        current = [i]
+        for j, right_char in enumerate(right, start=1):
+            current.append(
+                min(
+                    previous[j] + 1,
+                    current[j - 1] + 1,
+                    previous[j - 1] + int(left_char != right_char),
+                )
+            )
+        previous = current
+    return previous[-1]
+
+
+def _alphanumeric_signature(text: str) -> str:
+    return "".join(char.casefold() for char in text if char.isalnum())
+
+
+def _typed_edit_error(original: str, edit: dict[str, Any], start: int) -> str | None:
+    source = edit["from"]
+    replacement = edit["to"]
+    edit_type = edit["type"]
+
+    if edit_type not in ALLOWED_EDIT_TYPES:
+        return "unsupported_edit_type"
+
+    if edit_type == "filler":
+        if replacement:
+            return "filler_must_be_deletion"
+        if source.strip().casefold() not in SAFE_FILLER_FORMS:
+            return "filler_not_allowlisted"
+        return None
+
+    if edit_type == "punctuation":
+        if _alphanumeric_signature(source) != _alphanumeric_signature(replacement):
+            return "punctuation_changed_text"
+        return None
+
+    if edit_type == "capitalization":
+        if source.casefold() != replacement.casefold():
+            return "capitalization_changed_text"
+        return None
+
+    if edit_type == "spacing":
+        if "".join(source.split()) != "".join(replacement.split()):
+            return "spacing_changed_text"
+        return None
+
+    if edit_type == "repetition":
+        return "type_requires_review"
+
+    if not WORD_RE.fullmatch(source) or not WORD_RE.fullmatch(replacement):
+        return "unsafe_multiword_edit"
+    if source[0].isdigit() or replacement[0].isdigit():
+        return "protected_number_edit"
+    if len(replacement) < len(source):
+        return "unsafe_word_shortening"
+    if _edit_distance(source.casefold(), replacement.casefold()) > 1:
+        return "word_edit_distance_too_large"
+
+    prefix = original[:start].rstrip()
+    if source[0].isupper() and prefix and prefix[-1] not in ".!?\n":
+        return "protected_capitalized_token"
+    return None
+
+
 def _final_safety_error(original: str, candidate: str) -> str | None:
     if not candidate.strip():
         return "empty_output"
@@ -353,6 +446,9 @@ def apply_structured_edits(
             if any(start < prior_end and prior_start < end for prior_start, prior_end in spans):
                 rejection = "overlapping_edit"
 
+        if rejection is None:
+            rejection = _typed_edit_error(original, edit, start)
+
         edit_cost = max(len(source), len(replacement))
         if rejection is None and used_budget + edit_cost > change_budget:
             rejection = "change_budget_exceeded"
@@ -368,7 +464,16 @@ def apply_structured_edits(
 
     candidate = original
     for edit in sorted(accepted, key=lambda item: int(item["start"]), reverse=True):
-        candidate = candidate[: edit["start"]] + edit["to"] + candidate[edit["end"] :]
+        before = candidate[: edit["start"]]
+        after = candidate[edit["end"] :]
+        if edit["type"] == "filler" and not edit["to"]:
+            if after[:1] in {",", ";", ":"}:
+                after = after[1:]
+            if before and after and before[-1].isspace() and after[0].isspace():
+                after = after[1:]
+            elif not before and after[:1].isspace():
+                after = after[1:]
+        candidate = before + edit["to"] + after
 
     safety_error = _final_safety_error(original, candidate)
     if safety_error:
