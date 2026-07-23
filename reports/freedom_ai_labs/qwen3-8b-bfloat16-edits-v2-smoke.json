@@ -1,0 +1,1041 @@
+{
+  "benchmark": "freedom_ai_labs_transcript_cleanup",
+  "created_at": "2026-07-23T09:25:08.884925+00:00",
+  "backend": "transformers",
+  "model_name": "Qwen3-8B-bfloat16-edits-v2",
+  "model_path": "/scratch/azk2021/models/Qwen3-8B",
+  "tokenizer_path": "/scratch/azk2021/models/Qwen3-8B",
+  "server_url": null,
+  "hardware": "NVIDIA A100-SXM4-80GB",
+  "host": "cn267",
+  "slurm_job_id": "16799161",
+  "cuda_visible_devices": "0",
+  "dtype": "bfloat16",
+  "n_ctx": null,
+  "n_batch": null,
+  "n_gpu_layers": null,
+  "n_threads": null,
+  "input": "data/freedom_ai_labs_benchmark.csv",
+  "input_sha256": "aaaaa86ee1389a62b7c1cba3266c8083e75b8384c0d54b9b101ea5e3cfaaa076",
+  "rows": 20,
+  "max_new_tokens": 384,
+  "max_edits": 8,
+  "max_change_ratio": 0.15,
+  "max_edit_span_chars": 80,
+  "warmup": 2,
+  "seed": 0,
+  "startup_seconds": 11.387502970173955,
+  "summary": {
+    "requests": 20,
+    "mean_request_seconds": 1.5777893473394216,
+    "median_request_seconds": 1.402274610940367,
+    "p95_request_seconds": 3.4013968312647207,
+    "mean_generation_seconds": 1.5748178200796246,
+    "median_generation_seconds": 1.4002900924533606,
+    "p95_generation_seconds": 3.39929178566672,
+    "total_generation_seconds": 31.496356401592493,
+    "total_generated_tokens": 794,
+    "overall_tokens_per_second": 25.209265156773956,
+    "max_peak_memory_gib": 15.449718952178955,
+    "edit_parse_failures": 0,
+    "safety_fallbacks": 0,
+    "proposed_edits": 38,
+    "applied_edits": 13,
+    "rejected_edits": 25,
+    "unchanged_outputs": 9
+  },
+  "runs": [
+    {
+      "request_number": 1,
+      "row_id": "freedom_ai_labs_0001",
+      "language": "mix",
+      "raw_transcript": "Сәлеметсіз! Менің есімім Жанель. Сізге қандай көмек көрсетсеңіз?",
+      "reference_clean": "Сәлеметсіз бе! Менің есімім Жанель. Сізге қандай көмек көрсете аламын?",
+      "output_text": "Сәлеметсіз! Менің есімім Жанель. Сізге қандай көмек көрсетсеңіз?",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 703,
+      "generated_tokens": 6,
+      "request_seconds": 0.25838639214634895,
+      "generation_seconds": 0.25647176522761583,
+      "tokens_per_second": 23.3943880515466,
+      "peak_memory_gib": 15.434574127197266
+    },
+    {
+      "request_number": 2,
+      "row_id": "freedom_ai_labs_0002",
+      "language": "mix",
+      "raw_transcript": "Саламатсыз ба? Мен қазір Шымкент Ақтөбе бойынша бүгін ұшамын да Шымкенттен ыыы сұрайын дегенім регистрация қалай жасаймыз?",
+      "reference_clean": "Саламатсыз ба? Мен қазір Шымкент Ақтөбе бойынша бүгін ұшамын да Шымкенттен  сұрайын дегенім регистрация қалай жасаймыз?",
+      "output_text": "Саламатсыз ба? Мен қазір Шымкент Ақтөбе бойынша бүгін ұшамын да Шымкенттен  сұрайын дегенім регистрация қалай жасаймыз?",
+      "model_response": "{\"edits\":[{\"from\":\"ыыы\",\"to\":\"\",\"type\":\"filler\"},{\"from\":\"регистрация\",\"to\":\"регистрация\",\"type\":\"spelling\"},{\"from\":\"жасаймыз\",\"to\":\"жасаймыз\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "ыыы",
+          "to": "",
+          "type": "filler",
+          "occurrence": null
+        },
+        {
+          "from": "регистрация",
+          "to": "регистрация",
+          "type": "spelling",
+          "occurrence": null
+        },
+        {
+          "from": "жасаймыз",
+          "to": "жасаймыз",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "ыыы",
+          "to": "",
+          "type": "filler",
+          "occurrence": null,
+          "start": 75,
+          "end": 78
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "регистрация",
+            "to": "регистрация",
+            "type": "spelling",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "жасаймыз",
+            "to": "жасаймыз",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 732,
+      "generated_tokens": 58,
+      "request_seconds": 2.272433564066887,
+      "generation_seconds": 2.2703824108466506,
+      "tokens_per_second": 25.546357178820443,
+      "peak_memory_gib": 15.448732852935791
+    },
+    {
+      "request_number": 3,
+      "row_id": "freedom_ai_labs_0003",
+      "language": "mix",
+      "raw_transcript": "Мхм, осы номер арқылы алдыңыз ба билетіңізді?",
+      "reference_clean": "Мхм, осы номер арқылы алдыңыз ба билетіңізді?",
+      "output_text": ", осы номер арқылы алдыңыз ба билетіңізді?",
+      "model_response": "{\"edits\":[{\"from\":\"Мхм\",\"to\":\"\",\"type\":\"filler\"},{\"from\":\"арқылы\",\"to\":\"арқылы\",\"type\":\"grammar\"},{\"from\":\"алдыңыз\",\"to\":\"алдыңыз\",\"type\":\"grammar\"},{\"from\":\"ба\",\"to\":\"ба\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "Мхм",
+          "to": "",
+          "type": "filler",
+          "occurrence": null
+        },
+        {
+          "from": "арқылы",
+          "to": "арқылы",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "алдыңыз",
+          "to": "алдыңыз",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "ба",
+          "to": "ба",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "Мхм",
+          "to": "",
+          "type": "filler",
+          "occurrence": null,
+          "start": 0,
+          "end": 3
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "арқылы",
+            "to": "арқылы",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "алдыңыз",
+            "to": "алдыңыз",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "ба",
+            "to": "ба",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 685,
+      "generated_tokens": 69,
+      "request_seconds": 2.7036023531109095,
+      "generation_seconds": 2.7015872364863753,
+      "tokens_per_second": 25.54054115599831,
+      "peak_memory_gib": 15.431807518005371
+    },
+    {
+      "request_number": 4,
+      "row_id": "freedom_ai_labs_0004",
+      "language": "mix",
+      "raw_transcript": "Иә!",
+      "reference_clean": "Иә!",
+      "output_text": "Иә!",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 663,
+      "generated_tokens": 6,
+      "request_seconds": 0.26175825111567974,
+      "generation_seconds": 0.2598851416260004,
+      "tokens_per_second": 23.08712211271614,
+      "peak_memory_gib": 15.424808502197266
+    },
+    {
+      "request_number": 5,
+      "row_id": "freedom_ai_labs_0005",
+      "language": "mix",
+      "raw_transcript": "Шымкент-Ақтөбе бағыты бойынша.",
+      "reference_clean": "Шымкент-Ақтөбе бағыты бойынша иә?",
+      "output_text": "Шымкент-Ақтөбе бағыты бойынша.",
+      "model_response": "{\"edits\":[{\"from\":\"Шымкент-Ақтөбе\",\"to\":\"Шымкент-Ақтөбе\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "Шымкент-Ақтөбе",
+          "to": "Шымкент-Ақтөбе",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "Шымкент-Ақтөбе",
+            "to": "Шымкент-Ақтөбе",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 680,
+      "generated_tokens": 36,
+      "request_seconds": 1.4272875133901834,
+      "generation_seconds": 1.4254157869145274,
+      "tokens_per_second": 25.25578875334757,
+      "peak_memory_gib": 15.432134628295898
+    },
+    {
+      "request_number": 6,
+      "row_id": "freedom_ai_labs_0006",
+      "language": "mix",
+      "raw_transcript": "Иә!",
+      "reference_clean": "Иә",
+      "output_text": "Иә!",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 663,
+      "generated_tokens": 6,
+      "request_seconds": 0.2619975097477436,
+      "generation_seconds": 0.2600624542683363,
+      "tokens_per_second": 23.0713811298924,
+      "peak_memory_gib": 15.424808502197266
+    },
+    {
+      "request_number": 7,
+      "row_id": "freedom_ai_labs_0007",
+      "language": "mix",
+      "raw_transcript": "Аха, сізге ІІІ Скат әуе компаниясының сайтына кіру керек болады.",
+      "reference_clean": "Аха, сізге Скат әуе компаниясының сайтына кіру керек болады.",
+      "output_text": "Аха, сізге  Скать әуе компаниясының сайтына кіру керек болады.",
+      "model_response": "{\"edits\":[{\"from\":\"ІІІ\",\"to\":\"\",\"type\":\"filler\"},{\"from\":\"Скат\",\"to\":\"Скать\",\"type\":\"spelling\"}]}",
+      "proposed_edits": [
+        {
+          "from": "ІІІ",
+          "to": "",
+          "type": "filler",
+          "occurrence": null
+        },
+        {
+          "from": "Скат",
+          "to": "Скать",
+          "type": "spelling",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "ІІІ",
+          "to": "",
+          "type": "filler",
+          "occurrence": null,
+          "start": 11,
+          "end": 14
+        },
+        {
+          "from": "Скат",
+          "to": "Скать",
+          "type": "spelling",
+          "occurrence": null,
+          "start": 15,
+          "end": 19
+        }
+      ],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 694,
+      "generated_tokens": 35,
+      "request_seconds": 1.3772617084905505,
+      "generation_seconds": 1.3751643979921937,
+      "tokens_per_second": 25.45150241753036,
+      "peak_memory_gib": 15.433693885803223
+    },
+    {
+      "request_number": 8,
+      "row_id": "freedom_ai_labs_0008",
+      "language": "mix",
+      "raw_transcript": "Сереза гугл кіреміз ба?",
+      "reference_clean": "Через гугл кіреміз ба?",
+      "output_text": "Сереза гугл кіреріміз ба?",
+      "model_response": "{\"edits\":[{\"from\":\"кіреміз\",\"to\":\"кіреріміз\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "кіреміз",
+          "to": "кіреріміз",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "кіреміз",
+          "to": "кіреріміз",
+          "type": "grammar",
+          "occurrence": null,
+          "start": 12,
+          "end": 19
+        }
+      ],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 673,
+      "generated_tokens": 29,
+      "request_seconds": 1.1504017934203148,
+      "generation_seconds": 1.1484234668314457,
+      "tokens_per_second": 25.252009243604505,
+      "peak_memory_gib": 15.431931495666504
+    },
+    {
+      "request_number": 9,
+      "row_id": "freedom_ai_labs_0009",
+      "language": "mix",
+      "raw_transcript": "Иә.",
+      "reference_clean": "Иә!",
+      "output_text": "Иә.",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 663,
+      "generated_tokens": 6,
+      "request_seconds": 0.2613583020865917,
+      "generation_seconds": 0.2592180110514164,
+      "tokens_per_second": 23.146539762662897,
+      "peak_memory_gib": 15.424808502197266
+    },
+    {
+      "request_number": 10,
+      "row_id": "freedom_ai_labs_0010",
+      "language": "mix",
+      "raw_transcript": "Сосын!",
+      "reference_clean": "Сосын?",
+      "output_text": "Сосын!",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 665,
+      "generated_tokens": 6,
+      "request_seconds": 0.26127064786851406,
+      "generation_seconds": 0.2593559483066201,
+      "tokens_per_second": 23.13422938311243,
+      "peak_memory_gib": 15.425164222717285
+    },
+    {
+      "request_number": 11,
+      "row_id": "freedom_ai_labs_0011",
+      "language": "mix",
+      "raw_transcript": "Содан кейін өзіңіздің нөмір бронь бронь нөмірімен, өзіңіздің тегіңізді жазсаңыз әрі қарай регистрация і орысша жазылып тұрады, сол жерге түсінікті көрсетіліп тұрады.",
+      "reference_clean": "Содан кейін өзіңіздің нөмір бронь бронь нөмірімен өзіңіздің тегіңізді жазсаңыз әрі қарай регистрация орысша жазылып тұрады, сол жерде түсінікті көрсетіліп тұрады.",
+      "output_text": "Содан кейін өзіңіздің нөмір бронь нөмірімен, өзіңіздің тегіңізді жазсаңыз әрі қарай регистрация і жазылып тұрады, сол жерге түсінікті көрсетіліп тұрады.",
+      "model_response": "{\"edits\":[{\"from\":\"бронь бронь\",\"to\":\"бронь\",\"type\":\"repetition\"},{\"from\":\"і орысша\",\"to\":\"і\",\"type\":\"punctuation\"},{\"from\":\"түсінікті\",\"to\":\"түсінікті\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "бронь бронь",
+          "to": "бронь",
+          "type": "repetition",
+          "occurrence": null
+        },
+        {
+          "from": "і орысша",
+          "to": "і",
+          "type": "punctuation",
+          "occurrence": null
+        },
+        {
+          "from": "түсінікті",
+          "to": "түсінікті",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "бронь бронь",
+          "to": "бронь",
+          "type": "repetition",
+          "occurrence": null,
+          "start": 28,
+          "end": 39
+        },
+        {
+          "from": "і орысша",
+          "to": "і",
+          "type": "punctuation",
+          "occurrence": null,
+          "start": 102,
+          "end": 110
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "түсінікті",
+            "to": "түсінікті",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 768,
+      "generated_tokens": 69,
+      "request_seconds": 2.714826997369528,
+      "generation_seconds": 2.7125907260924578,
+      "tokens_per_second": 25.43693721883209,
+      "peak_memory_gib": 15.449718952178955
+    },
+    {
+      "request_number": 12,
+      "row_id": "freedom_ai_labs_0012",
+      "language": "mix",
+      "raw_transcript": "А негізі максимум телефоннан регистрация жасай алмасам, қырық минут алды болуым керек қой, дұрыс па?",
+      "reference_clean": "А негізі максимум телефоннан регистрация жасай алмасам, қырық минут алды болуым керек қой, дұрыс па?",
+      "output_text": "А негізі максимум телефоннан регистрация жасай алмаймын, қырық минут алды болуым керек қой, дұрыс па?",
+      "model_response": "{\"edits\":[{\"from\":\"А негізі\",\"to\":\"А негізі\",\"type\":\"grammar\"},{\"from\":\"регистрация\",\"to\":\"регистрация\",\"type\":\"spelling\"},{\"from\":\"алмасам\",\"to\":\"алмаймын\",\"type\":\"grammar\"},{\"from\":\"алды\",\"to\":\"алды\",\"type\":\"grammar\"},{\"from\":\"қой\",\"to\":\"қой\",\"type\":\"grammar\"},{\"from\":\"дұрыс\",\"to\":\"дұрыс\",\"type\":\"grammar\"},{\"from\":\"па\",\"to\":\"па\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "А негізі",
+          "to": "А негізі",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "регистрация",
+          "to": "регистрация",
+          "type": "spelling",
+          "occurrence": null
+        },
+        {
+          "from": "алмасам",
+          "to": "алмаймын",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "алды",
+          "to": "алды",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "қой",
+          "to": "қой",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "дұрыс",
+          "to": "дұрыс",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "па",
+          "to": "па",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "алмасам",
+          "to": "алмаймын",
+          "type": "grammar",
+          "occurrence": null,
+          "start": 47,
+          "end": 54
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "А негізі",
+            "to": "А негізі",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "регистрация",
+            "to": "регистрация",
+            "type": "spelling",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "алды",
+            "to": "алды",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "қой",
+            "to": "қой",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "дұрыс",
+            "to": "дұрыс",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "па",
+            "to": "па",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 706,
+      "generated_tokens": 124,
+      "request_seconds": 4.849998168647289,
+      "generation_seconds": 4.84772577136755,
+      "tokens_per_second": 25.579004640153034,
+      "peak_memory_gib": 15.437875270843506
+    },
+    {
+      "request_number": 13,
+      "row_id": "freedom_ai_labs_0013",
+      "language": "mix",
+      "raw_transcript": "Ия.",
+      "reference_clean": "Иә.",
+      "output_text": "Ия.",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 663,
+      "generated_tokens": 6,
+      "request_seconds": 0.2615149859338999,
+      "generation_seconds": 0.25951539911329746,
+      "tokens_per_second": 23.12001530737897,
+      "peak_memory_gib": 15.424808502197266
+    },
+    {
+      "request_number": 14,
+      "row_id": "freedom_ai_labs_0014",
+      "language": "mix",
+      "raw_transcript": "Перевод салып беріңіздер ма? Телефон бойынша мен сізге айтамын.",
+      "reference_clean": "Сіздер жасап бере аласыздар ма? Қазір телефон бойынша мен сізге айтамын.",
+      "output_text": "Перевод салып беріңіз ма? Телефон бойынша мен сізге айтамын.",
+      "model_response": "{\"edits\":[{\"from\":\"беріңіздер\",\"to\":\"беріңіз\",\"type\":\"grammar\"},{\"from\":\"айтамын\",\"to\":\"айтамын\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "беріңіздер",
+          "to": "беріңіз",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "айтамын",
+          "to": "айтамын",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "беріңіздер",
+          "to": "беріңіз",
+          "type": "grammar",
+          "occurrence": null,
+          "start": 14,
+          "end": 24
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "айтамын",
+            "to": "айтамын",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 694,
+      "generated_tokens": 47,
+      "request_seconds": 2.006556835025549,
+      "generation_seconds": 1.9992851177230477,
+      "tokens_per_second": 23.50840287028571,
+      "peak_memory_gib": 15.433693885803223
+    },
+    {
+      "request_number": 15,
+      "row_id": "freedom_ai_labs_0015",
+      "language": "mix",
+      "raw_transcript": "Аха, жақсы қазір онда желіде күтсеңіз, мен сіз үшін өтіп көрейін.",
+      "reference_clean": "Аха, жақсы қазір онда желіде күтсеңіз, мен сіз үшін өтіп көрейін.",
+      "output_text": "Аха, жақсы қазір онда желіде күтсеңіз, мен сіз үшін өтіп көремін.",
+      "model_response": "{\"edits\":[{\"from\":\"күтсеңіз\",\"to\":\"күтсеңіз\",\"type\":\"grammar\"},{\"from\":\"өтіп көрейін\",\"to\":\"өтіп көремін\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "күтсеңіз",
+          "to": "күтсеңіз",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "өтіп көрейін",
+          "to": "өтіп көремін",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "өтіп көрейін",
+          "to": "өтіп көремін",
+          "type": "grammar",
+          "occurrence": null,
+          "start": 52,
+          "end": 64
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "күтсеңіз",
+            "to": "күтсеңіз",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 705,
+      "generated_tokens": 58,
+      "request_seconds": 2.300998965278268,
+      "generation_seconds": 2.2855363292619586,
+      "tokens_per_second": 25.37697574850156,
+      "peak_memory_gib": 15.437865734100342
+    },
+    {
+      "request_number": 16,
+      "row_id": "freedom_ai_labs_0016",
+      "language": "mix",
+      "raw_transcript": "Желде күткеніңіз үшін рахмет! Естіп тұрмын ба?",
+      "reference_clean": "Желіде күткеніңіз үшін рахмет! Естіліп тұрмын ба?",
+      "output_text": "Желде күткеніңіз үшін рахмет! Естіп тұрын ба?",
+      "model_response": "{\"edits\":[{\"from\":\"Естіп\",\"to\":\"Естіп\",\"type\":\"grammar\"},{\"from\":\"тұрмын\",\"to\":\"тұрын\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "Естіп",
+          "to": "Естіп",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "тұрмын",
+          "to": "тұрын",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "тұрмын",
+          "to": "тұрын",
+          "type": "grammar",
+          "occurrence": null,
+          "start": 36,
+          "end": 42
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "Естіп",
+            "to": "Естіп",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 692,
+      "generated_tokens": 43,
+      "request_seconds": 1.698454205878079,
+      "generation_seconds": 1.6964090336114168,
+      "tokens_per_second": 25.347660350793483,
+      "peak_memory_gib": 15.43349838256836
+    },
+    {
+      "request_number": 17,
+      "row_id": "freedom_ai_labs_0017",
+      "language": "mix",
+      "raw_transcript": "Иә, иә!",
+      "reference_clean": "Ия, иә!",
+      "output_text": "Иә, иә!",
+      "model_response": "{\"edits\":[]}",
+      "proposed_edits": [],
+      "applied_edits": [],
+      "rejected_edits": [],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 666,
+      "generated_tokens": 6,
+      "request_seconds": 0.2615100257098675,
+      "generation_seconds": 0.2595590306445956,
+      "tokens_per_second": 23.116128863247194,
+      "peak_memory_gib": 15.425341606140137
+    },
+    {
+      "request_number": 18,
+      "row_id": "freedom_ai_labs_0018",
+      "language": "mix",
+      "raw_transcript": "Аха, сізге қай орындар ыңғайлы болады? Мұнда алдыңғы қатарда бесінші қатар бос екен. сізге терезеден жаны ма немесе проходтан ба орын.",
+      "reference_clean": "Аха,сізге қай орындар ыңғайлы болады? Мұнда алдыңғы қатарда бесінші қатар бос екен. Сізге терезенің жаны ма немесе проходтан ба орын.",
+      "output_text": "Ах, сізге қай орындар ыңғайлы болады? Мұнда алдыңғы қатарда бесінші қатар бос екен. сізге терезеден жаны ма немесе проходтан ба орын.",
+      "model_response": "{\"edits\":[{\"from\":\"Аха\",\"to\":\"Ах\",\"type\":\"filler\"},{\"from\":\"ыңғайлы\",\"to\":\"ыңғайлы\",\"type\":\"grammar\"},{\"from\":\"бос\",\"to\":\"бос\",\"type\":\"grammar\"},{\"from\":\"ба\",\"to\":\"ба\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "Аха",
+          "to": "Ах",
+          "type": "filler",
+          "occurrence": null
+        },
+        {
+          "from": "ыңғайлы",
+          "to": "ыңғайлы",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "бос",
+          "to": "бос",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "ба",
+          "to": "ба",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "Аха",
+          "to": "Ах",
+          "type": "filler",
+          "occurrence": null,
+          "start": 0,
+          "end": 3
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "ыңғайлы",
+            "to": "ыңғайлы",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "бос",
+            "to": "бос",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "ба",
+            "to": "ба",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 736,
+      "generated_tokens": 67,
+      "request_seconds": 2.6317452462390065,
+      "generation_seconds": 2.6296227388083935,
+      "tokens_per_second": 25.478940005805118,
+      "peak_memory_gib": 15.448734760284424
+    },
+    {
+      "request_number": 19,
+      "row_id": "freedom_ai_labs_0019",
+      "language": "mix",
+      "raw_transcript": "Ыыы, маған тереза жақты жасап беріңізші ы ең алдыңғы қатардан!",
+      "reference_clean": "Маған терезе жақты жасап беріңізші ең алдыңғы қатардан!",
+      "output_text": ", маған тереза жақты жасап беріңізші ы ең алдыңғы қатардан!",
+      "model_response": "{\"edits\":[{\"from\":\"Ыыы\",\"to\":\"\",\"type\":\"filler\"},{\"from\":\"ы\",\"to\":\"і\",\"type\":\"capitalization\"}]}",
+      "proposed_edits": [
+        {
+          "from": "Ыыы",
+          "to": "",
+          "type": "filler",
+          "occurrence": null
+        },
+        {
+          "from": "ы",
+          "to": "і",
+          "type": "capitalization",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [
+        {
+          "from": "Ыыы",
+          "to": "",
+          "type": "filler",
+          "occurrence": null,
+          "start": 0,
+          "end": 3
+        }
+      ],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "ы",
+            "to": "і",
+            "type": "capitalization",
+            "occurrence": null
+          },
+          "reason": "source_not_unique"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 699,
+      "generated_tokens": 32,
+      "request_seconds": 1.2692688256502151,
+      "generation_seconds": 1.2670872174203396,
+      "tokens_per_second": 25.254772962786838,
+      "peak_memory_gib": 15.434183120727539
+    },
+    {
+      "request_number": 20,
+      "row_id": "freedom_ai_labs_0020",
+      "language": "mix",
+      "raw_transcript": "Бес А орнын таңдайын, онда сізге А қазір өтіп жатырмын тіркеуден.",
+      "reference_clean": "Бес А орнын таңдайын, онда сізге. Аха, қазір өтіп жатырмын тіркеуден.",
+      "output_text": "Бес А орнын таңдайын, онда сізге А қазір өтіп жатырмын тіркеуден.",
+      "model_response": "{\"edits\":[{\"from\":\"А\",\"to\":\"а\",\"type\":\"capitalization\"},{\"from\":\"А\",\"to\":\"а\",\"type\":\"capitalization\"},{\"from\":\"А\",\"to\":\"а\",\"type\":\"capitalization\"},{\"from\":\"өтіп\",\"to\":\"өтіп\",\"type\":\"grammar\"},{\"from\":\"жатырмын\",\"to\":\"жатырмын\",\"type\":\"grammar\"}]}",
+      "proposed_edits": [
+        {
+          "from": "А",
+          "to": "а",
+          "type": "capitalization",
+          "occurrence": null
+        },
+        {
+          "from": "А",
+          "to": "а",
+          "type": "capitalization",
+          "occurrence": null
+        },
+        {
+          "from": "А",
+          "to": "а",
+          "type": "capitalization",
+          "occurrence": null
+        },
+        {
+          "from": "өтіп",
+          "to": "өтіп",
+          "type": "grammar",
+          "occurrence": null
+        },
+        {
+          "from": "жатырмын",
+          "to": "жатырмын",
+          "type": "grammar",
+          "occurrence": null
+        }
+      ],
+      "applied_edits": [],
+      "rejected_edits": [
+        {
+          "edit": {
+            "from": "А",
+            "to": "а",
+            "type": "capitalization",
+            "occurrence": null
+          },
+          "reason": "source_not_unique"
+        },
+        {
+          "edit": {
+            "from": "А",
+            "to": "а",
+            "type": "capitalization",
+            "occurrence": null
+          },
+          "reason": "source_not_unique"
+        },
+        {
+          "edit": {
+            "from": "А",
+            "to": "а",
+            "type": "capitalization",
+            "occurrence": null
+          },
+          "reason": "source_not_unique"
+        },
+        {
+          "edit": {
+            "from": "өтіп",
+            "to": "өтіп",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        },
+        {
+          "edit": {
+            "from": "жатырмын",
+            "to": "жатырмын",
+            "type": "grammar",
+            "occurrence": null
+          },
+          "reason": "no_op"
+        }
+      ],
+      "parse_error": null,
+      "safety_fallback": null,
+      "input_tokens": 705,
+      "generated_tokens": 85,
+      "request_seconds": 3.325154655613005,
+      "generation_seconds": 3.3230584179982543,
+      "tokens_per_second": 25.57884614354819,
+      "peak_memory_gib": 15.437865734100342
+    }
+  ]
+}
