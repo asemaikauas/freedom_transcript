@@ -60,7 +60,7 @@ marks every row as `mix` (Kazakh-Russian mixed) unless `--language` is supplied.
 Do not infer separate Kazakh and Russian scores from this dataset without adding
 reviewed language labels first.
 
-The generated benchmark contains 187 rows. To evaluate its supplied ASR baseline:
+The generated benchmark contains 215 rows. To evaluate its supplied ASR baseline:
 
 ```bash
 python3 scripts/evaluate_outputs.py \
@@ -75,6 +75,29 @@ python3 scripts/evaluate_outputs.py \
 the full Qwen3-8B directory to render exactly the same chat prompt with thinking
 disabled. Requests are processed serially with batch size 1 for comparable
 latency and tokens-per-second measurements.
+
+The model does not write the final transcript directly. It proposes exact local
+replacements as JSON, and the runner applies only edits that pass validation.
+The evaluator-compatible output remains:
+
+```text
+id,model,cleaned_text
+```
+
+The runner rejects malformed JSON, non-local or overlapping replacements,
+ambiguous repeated substrings, excessive changes, modified numbers, unexpected
+Kazakh/Russian language shifts, and repetition loops. A rejected response falls
+back to the original ASR transcript. Per-row timing JSONL records the raw model
+response, proposed edits, applied edits, rejected edits, parse errors, and
+safety fallback reason.
+
+The safety limits can be adjusted when running controlled experiments:
+
+```text
+--max-edits 8
+--max-change-ratio 0.15
+--max-edit-span-chars 80
+```
 
 Full-precision Transformers run:
 

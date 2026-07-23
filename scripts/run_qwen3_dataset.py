@@ -20,6 +20,7 @@ import subprocess
 import time
 import urllib.error
 import urllib.request
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -41,6 +42,76 @@ PREAMBLE_RE = re.compile(
     r"^(?:here(?:'s| is)|this is|the (?:cleaned|corrected)(?: up)? transcript(?: is)?)"
     r"\b[^:\n]{0,60}:\s*",
     re.IGNORECASE,
+)
+CODE_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE)
+WORD_RE = re.compile(r"\w+", re.UNICODE)
+DIGIT_RE = re.compile(r"\d+(?:[.,]\d+)?")
+KAZAKH_SPECIFIC_LETTERS = frozenset("әғқңөұүһіӘҒҚҢӨҰҮҺІ")
+NUMBER_WORDS = frozenset(
+    {
+        "ноль",
+        "один",
+        "одна",
+        "одно",
+        "два",
+        "две",
+        "три",
+        "четыре",
+        "пять",
+        "шесть",
+        "семь",
+        "восемь",
+        "девять",
+        "десять",
+        "одиннадцать",
+        "двенадцать",
+        "тринадцать",
+        "четырнадцать",
+        "пятнадцать",
+        "шестнадцать",
+        "семнадцать",
+        "восемнадцать",
+        "девятнадцать",
+        "двадцать",
+        "тридцать",
+        "сорок",
+        "пятьдесят",
+        "шестьдесят",
+        "семьдесят",
+        "восемьдесят",
+        "девяносто",
+        "сто",
+        "тысяча",
+        "тысячи",
+        "тысяч",
+        "миллион",
+        "миллиона",
+        "миллионов",
+        "миллиард",
+        "миллиарда",
+        "миллиардов",
+        "нөл",
+        "бір",
+        "екі",
+        "үш",
+        "төрт",
+        "бес",
+        "алты",
+        "жеті",
+        "сегіз",
+        "тоғыз",
+        "он",
+        "жиырма",
+        "отыз",
+        "қырық",
+        "елу",
+        "алпыс",
+        "жетпіс",
+        "сексен",
+        "тоқсан",
+        "жүз",
+        "мың",
+    }
 )
 
 
@@ -72,7 +143,7 @@ def parse_args() -> argparse.Namespace:
         help="Base URL of an already-running llama-server.",
     )
     parser.add_argument("--dtype", choices=("bfloat16", "float16"), default="bfloat16")
-    parser.add_argument("--max-new-tokens", type=int, default=256)
+    parser.add_argument("--max-new-tokens", type=int, default=384)
     parser.add_argument("--warmup", type=int, default=2)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--seed", type=int, default=0)
@@ -81,6 +152,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-batch", type=int, default=512)
     parser.add_argument("--n-gpu-layers", type=int, default=-1)
     parser.add_argument("--n-threads", type=int, default=8)
+    parser.add_argument(
+        "--max-edits",
+        type=int,
+        default=8,
+        help="Maximum structured edits accepted from one model response.",
+    )
+    parser.add_argument(
+        "--max-change-ratio",
+        type=float,
+        default=0.15,
+        help="Maximum fraction of source characters covered by accepted edit spans.",
+    )
+    parser.add_argument(
+        "--max-edit-span-chars",
+        type=int,
+        default=80,
+        help="Maximum source or replacement length for one local edit.",
+    )
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
 
@@ -92,6 +181,206 @@ def clean_completion(text: str) -> str:
     if len(text) >= 2 and text[0] in "\"'" and text[-1] in "\"'":
         text = text[1:-1].strip()
     return text
+
+
+def _load_json_response(text: str) -> Any:
+    cleaned = CODE_FENCE_RE.sub("", clean_completion(text)).strip()
+    candidates = [cleaned]
+    fragments: list[tuple[int, str]] = []
+    object_start = cleaned.find("{")
+    object_end = cleaned.rfind("}")
+    if object_start >= 0 and object_end > object_start:
+        fragments.append((object_start, cleaned[object_start : object_end + 1]))
+    array_start = cleaned.find("[")
+    array_end = cleaned.rfind("]")
+    if array_start >= 0 and array_end > array_start:
+        fragments.append((array_start, cleaned[array_start : array_end + 1]))
+    candidates.extend(fragment for _start, fragment in sorted(fragments))
+
+    last_error: json.JSONDecodeError | None = None
+    for candidate in candidates:
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+    assert last_error is not None
+    raise last_error
+
+
+def parse_edit_response(text: str) -> tuple[list[dict[str, Any]], str | None]:
+    try:
+        payload = _load_json_response(text)
+    except json.JSONDecodeError as exc:
+        return [], f"invalid_json:{exc.msg}"
+
+    if isinstance(payload, dict):
+        raw_edits = payload.get("edits")
+    elif isinstance(payload, list):
+        raw_edits = payload
+    else:
+        return [], "response_must_be_object_or_array"
+    if not isinstance(raw_edits, list):
+        return [], "edits_must_be_array"
+
+    edits: list[dict[str, Any]] = []
+    for index, item in enumerate(raw_edits):
+        if not isinstance(item, dict):
+            return [], f"edit_{index}_must_be_object"
+        source = item.get("from")
+        replacement = item.get("to")
+        edit_type = item.get("type", "unspecified")
+        occurrence = item.get("occurrence")
+        if not isinstance(source, str) or not source:
+            return [], f"edit_{index}_from_must_be_nonempty_string"
+        if not isinstance(replacement, str):
+            return [], f"edit_{index}_to_must_be_string"
+        if not isinstance(edit_type, str) or not edit_type:
+            return [], f"edit_{index}_type_must_be_string"
+        if occurrence is not None and (
+            not isinstance(occurrence, int) or isinstance(occurrence, bool) or occurrence < 1
+        ):
+            return [], f"edit_{index}_occurrence_must_be_positive_integer"
+        edits.append(
+            {
+                "from": source,
+                "to": replacement,
+                "type": edit_type,
+                "occurrence": occurrence,
+            }
+        )
+    return edits, None
+
+
+def _occurrence_starts(text: str, substring: str) -> list[int]:
+    starts: list[int] = []
+    offset = 0
+    while True:
+        start = text.find(substring, offset)
+        if start < 0:
+            return starts
+        starts.append(start)
+        offset = start + len(substring)
+
+
+def _number_signature(text: str) -> tuple[list[str], Counter[str]]:
+    digits = DIGIT_RE.findall(text)
+    words = Counter(token for token in WORD_RE.findall(text.casefold()) if token in NUMBER_WORDS)
+    return digits, words
+
+
+def _has_repetition_loop(text: str, threshold: int = 5) -> bool:
+    previous = None
+    run_length = 0
+    for token in WORD_RE.findall(text.casefold()):
+        if token == previous:
+            run_length += 1
+        else:
+            previous = token
+            run_length = 1
+        if run_length >= threshold:
+            return True
+    return False
+
+
+def _final_safety_error(original: str, candidate: str) -> str | None:
+    if not candidate.strip():
+        return "empty_output"
+    if _number_signature(original) != _number_signature(candidate):
+        return "protected_number_changed"
+    original_kazakh = sum(char in KAZAKH_SPECIFIC_LETTERS for char in original)
+    candidate_kazakh = sum(char in KAZAKH_SPECIFIC_LETTERS for char in candidate)
+    if original_kazakh == 0 and candidate_kazakh >= 2:
+        return "unexpected_kazakh_translation"
+    if original_kazakh >= 3 and candidate_kazakh < max(1, original_kazakh // 2):
+        return "unexpected_kazakh_removal"
+    if _has_repetition_loop(candidate):
+        return "repetition_loop"
+    return None
+
+
+def apply_structured_edits(
+    original: str,
+    response: str,
+    max_edits: int = 8,
+    max_change_ratio: float = 0.15,
+    max_edit_span_chars: int = 80,
+) -> dict[str, Any]:
+    proposed, parse_error = parse_edit_response(response)
+    result: dict[str, Any] = {
+        "output_text": original,
+        "model_response": clean_completion(response),
+        "proposed_edits": proposed,
+        "applied_edits": [],
+        "rejected_edits": [],
+        "parse_error": parse_error,
+        "safety_fallback": None,
+    }
+    if parse_error:
+        return result
+    if len(proposed) > max_edits:
+        result["parse_error"] = f"too_many_edits:{len(proposed)}>{max_edits}"
+        return result
+
+    change_budget = max(24, math.ceil(len(original) * max_change_ratio))
+    used_budget = 0
+    spans: list[tuple[int, int]] = []
+    accepted: list[dict[str, Any]] = []
+
+    for edit in proposed:
+        rejection: str | None = None
+        source = edit["from"]
+        replacement = edit["to"]
+        if source == replacement:
+            rejection = "no_op"
+        elif max(len(source), len(replacement)) > max_edit_span_chars:
+            rejection = "edit_span_too_large"
+
+        starts = _occurrence_starts(original, source) if rejection is None else []
+        occurrence = edit["occurrence"]
+        if rejection is None:
+            if occurrence is None and len(starts) != 1:
+                rejection = "source_not_unique"
+            elif occurrence is not None and occurrence > len(starts):
+                rejection = "occurrence_not_found"
+            elif not starts:
+                rejection = "source_not_found"
+
+        start = -1
+        end = -1
+        if rejection is None:
+            start = starts[0] if occurrence is None else starts[occurrence - 1]
+            end = start + len(source)
+            if any(start < prior_end and prior_start < end for prior_start, prior_end in spans):
+                rejection = "overlapping_edit"
+
+        edit_cost = max(len(source), len(replacement))
+        if rejection is None and used_budget + edit_cost > change_budget:
+            rejection = "change_budget_exceeded"
+
+        if rejection is not None:
+            result["rejected_edits"].append({"edit": edit, "reason": rejection})
+            continue
+
+        accepted_edit = {**edit, "start": start, "end": end}
+        accepted.append(accepted_edit)
+        spans.append((start, end))
+        used_budget += edit_cost
+
+    candidate = original
+    for edit in sorted(accepted, key=lambda item: int(item["start"]), reverse=True):
+        candidate = candidate[: edit["start"]] + edit["to"] + candidate[edit["end"] :]
+
+    safety_error = _final_safety_error(original, candidate)
+    if safety_error:
+        result["safety_fallback"] = safety_error
+        result["rejected_edits"].extend(
+            {"edit": edit, "reason": f"global:{safety_error}"} for edit in accepted
+        )
+        return result
+
+    result["output_text"] = candidate
+    result["applied_edits"] = accepted
+    return result
 
 
 def load_rows(path: Path, limit: int | None) -> list[dict[str, str]]:
@@ -123,11 +412,22 @@ def load_tokenizer(path: Path):
 
 def build_prompt(tokenizer, system_prompt: str, row: dict[str, str]) -> str:
     language = LANGUAGE_NAMES.get(row["language"], row["language"])
+    if row["language"] == "mix":
+        language_instruction = (
+            "Language policy: the source may contain Kazakh, Russian, or both. "
+            "Preserve the language of every source segment; never translate."
+        )
+    else:
+        language_instruction = f"Target language: {language}."
     messages = [
         {"role": "system", "content": system_prompt},
         {
             "role": "user",
-            "content": f"Target language: {language}\n\n{row['raw_transcript']}",
+            "content": (
+                f"{language_instruction}\n"
+                "Input transcript as a JSON string:\n"
+                f"{json.dumps(row['raw_transcript'], ensure_ascii=False)}"
+            ),
         },
     ]
     return tokenizer.apply_chat_template(
@@ -157,7 +457,7 @@ def summarize(runs: list[dict[str, Any]]) -> dict[str, float | int | None]:
     generated_tokens = sum(int(run["generated_tokens"]) for run in runs)
     generation_total = sum(generation_seconds)
     peaks = [float(run["peak_memory_gib"]) for run in runs if run["peak_memory_gib"] is not None]
-    return {
+    result: dict[str, float | int | None] = {
         "requests": len(runs),
         "mean_request_seconds": statistics.mean(request_seconds),
         "median_request_seconds": statistics.median(request_seconds),
@@ -170,6 +470,20 @@ def summarize(runs: list[dict[str, Any]]) -> dict[str, float | int | None]:
         "overall_tokens_per_second": generated_tokens / generation_total if generation_total else 0.0,
         "max_peak_memory_gib": max(peaks) if peaks else None,
     }
+    if any("proposed_edits" in run for run in runs):
+        result.update(
+            {
+                "edit_parse_failures": sum(bool(run.get("parse_error")) for run in runs),
+                "safety_fallbacks": sum(bool(run.get("safety_fallback")) for run in runs),
+                "proposed_edits": sum(len(run.get("proposed_edits", [])) for run in runs),
+                "applied_edits": sum(len(run.get("applied_edits", [])) for run in runs),
+                "rejected_edits": sum(len(run.get("rejected_edits", [])) for run in runs),
+                "unchanged_outputs": sum(
+                    run.get("output_text") == run.get("raw_transcript") for run in runs
+                ),
+            }
+        )
+    return result
 
 
 def get_json(url: str, timeout: float) -> dict[str, Any]:
@@ -409,6 +723,12 @@ def main() -> None:
         raise SystemExit("--n-batch must be at least 1.")
     if args.n_threads < 1:
         raise SystemExit("--n-threads must be at least 1.")
+    if args.max_edits < 1:
+        raise SystemExit("--max-edits must be at least 1.")
+    if not 0 < args.max_change_ratio <= 1:
+        raise SystemExit("--max-change-ratio must be greater than 0 and at most 1.")
+    if args.max_edit_span_chars < 1:
+        raise SystemExit("--max-edit-span-chars must be at least 1.")
     tokenizer_path = args.tokenizer_path
     if tokenizer_path is None and args.backend == "transformers":
         tokenizer_path = args.model_path
@@ -479,7 +799,15 @@ def main() -> None:
         writer.writeheader()
         for request_number, (row, prompt) in enumerate(zip(rows, prompts), start=1):
             backend_result = backend.run(prompt, args.max_new_tokens, args.seed)
-            cleaned_text = clean_completion(str(backend_result.pop("text")))
+            model_response = str(backend_result.pop("text"))
+            edit_result = apply_structured_edits(
+                row["raw_transcript"],
+                model_response,
+                max_edits=args.max_edits,
+                max_change_ratio=args.max_change_ratio,
+                max_edit_span_chars=args.max_edit_span_chars,
+            )
+            cleaned_text = str(edit_result["output_text"])
             writer.writerow({"id": row["id"], "model": args.model_name, "cleaned_text": cleaned_text})
             output_handle.flush()
             run = {
@@ -489,6 +817,12 @@ def main() -> None:
                 "raw_transcript": row["raw_transcript"],
                 "reference_clean": row["reference_clean"],
                 "output_text": cleaned_text,
+                "model_response": edit_result["model_response"],
+                "proposed_edits": edit_result["proposed_edits"],
+                "applied_edits": edit_result["applied_edits"],
+                "rejected_edits": edit_result["rejected_edits"],
+                "parse_error": edit_result["parse_error"],
+                "safety_fallback": edit_result["safety_fallback"],
                 **backend_result,
             }
             runs.append(run)
@@ -498,7 +832,8 @@ def main() -> None:
                 f"Request {request_number}/{len(rows)} id={row['id']} "
                 f"latency={run['request_seconds']:.3f}s "
                 f"generation={run['generation_seconds']:.3f}s "
-                f"speed={run['tokens_per_second']:.2f}tok/s"
+                f"speed={run['tokens_per_second']:.2f}tok/s "
+                f"edits={len(run['applied_edits'])}/{len(run['proposed_edits'])}"
             )
 
     report = {
@@ -522,6 +857,9 @@ def main() -> None:
         "input_sha256": sha256(args.input),
         "rows": len(rows),
         "max_new_tokens": args.max_new_tokens,
+        "max_edits": args.max_edits,
+        "max_change_ratio": args.max_change_ratio,
+        "max_edit_span_chars": args.max_edit_span_chars,
         "warmup": args.warmup,
         "seed": args.seed,
         "startup_seconds": startup_seconds,
